@@ -15,13 +15,9 @@
 
 namespace calc {
     enum class WinOpt {
-        BOXED,
-        NOBOXED,
-        TITLED,
-        NOTITLED,
-        LALIGNED,
-        CALIGNED,
-        RALIGNED
+        BOXED, NOBOXED,
+        TITLED, NOTITLED,
+        LALIGNED, CALIGNED, RALIGNED
     };
 
     class Curses {
@@ -53,10 +49,8 @@ namespace calc {
     class Item {
     public:
         Item() = default;
-        Item(std::string v) : _value(v){}
-        Item(std::function<std::string()> func) {
-            value(func);
-        }
+        Item(std::string v) { value(v); }
+        Item(std::function<std::string()> func) { value(func);}
 
         std::string value() const {
             if (_dynamic) { return _dynValue(); }
@@ -81,8 +75,10 @@ namespace calc {
 
         void print(WINDOW* win, int row, int col, int width, int height = 1){
             if (!_enabled) { return; }
+
             int length = value().size();
             int x = (width - length) /2;
+            
             mvwprintw(win, row, x, value().c_str());
         }
 
@@ -170,7 +166,9 @@ namespace calc {
 
         void markSelected() {
             _selected = true;
+
             draw();
+
             wnoutrefresh(_win);
             doupdate();
         }
@@ -206,14 +204,19 @@ namespace calc {
 
         void draw(){
             drawBox();
+
             putTitle();
+
             _content.print(_win, getCoords());
+
             this->refresh();
         }
 
         std::vector<int> getCoords() {
             std::vector<int> coords {getmaxy(_win), getmaxx(_win), 0, 0};
+
             if (_boxed) { coords[0] -= 2; coords[1] -= 2; coords[2] += 1; coords[3] += 1; }
+
             return coords;
         }
 
@@ -268,7 +271,9 @@ namespace calc {
 
         void updateMarkedWindow() {
             if (_windowsOrder.size() == 0) { return; }
+
             _windows[_windowsOrder[0]].markSelected();
+
             for (int i = 1; i < _windowsOrder.size(); i++) { _windows[_windowsOrder[i]].unmarkSelected(); }
         }
 
@@ -283,13 +288,9 @@ namespace calc {
             updateMarkedWindow();
         }
 
-        void rotateRightSelectedWindow() { 
-            std::rotate(_windowsOrder.rbegin(), _windowsOrder.rbegin() + 1, _windowsOrder.rend());
-        }
+        void rotateRightSelectedWindow() { std::rotate(_windowsOrder.rbegin(), _windowsOrder.rbegin() + 1, _windowsOrder.rend()); }
 
-        void rotateLeftSelectedWindow() {
-            std::rotate(_windowsOrder.begin(), _windowsOrder.begin() + 1, _windowsOrder.end());
-        }
+        void rotateLeftSelectedWindow() { std::rotate(_windowsOrder.begin(), _windowsOrder.begin() + 1, _windowsOrder.end()); }
 
         std::unordered_map<std::string, Window> _windows;
         std::vector<std::string> _windowsOrder;
@@ -310,11 +311,12 @@ namespace calc {
             }
         }
 
-        template<typename... WinOpts,
-            typename = std::enable_if_t<(std::is_same_v<WinOpts, WinOpt> && ...)>>
+        template<typename... WinOpts, typename = std::enable_if_t<(std::is_same_v<WinOpts, WinOpt> && ...)>>
         void addWindow(std::string name, std::function<std::vector<int>()> func, WinOpts... opts) {
             windows()[name] = Window(name, func);
+            
             (..., windows()[name].setOption(opts));
+
             windows().windowsOrder(name);
             doupdate();
         }
@@ -354,7 +356,10 @@ void initContent(calc::App& app){
     calc::Window& m = app.window("Vars");
     calc::Window& s = app.window("Status");
     std::function<std::string()> f1 = [&]() -> std::string {
-        return std::format("([{} , {}], [{}, {}]) {} {}", getbegy(m.win()), getbegx(m.win()), getmaxy(m.win()), getmaxx(m.win()), m.contentSize()[0], m.contentSize()[1]);
+        return std::format(
+            "([{} , {}], [{}, {}]) {} {}",
+            getbegy(m.win()), getbegx(m.win()), getmaxy(m.win()), getmaxx(m.win()), m.contentSize()[0], m.contentSize()[1]
+        );
     };
     m.contentAdd("holi");
     s.contentAdd(f1);
