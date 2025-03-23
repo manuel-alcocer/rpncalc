@@ -112,16 +112,8 @@ namespace calc {
         }
 
         void allocateNew() {
-            if (_content.empty()) {
-                _content.push_back(std::vector<Item>());
-            }
-            if (_content[_rptr].empty()) {
-                _content[_rptr].push_back(Item());
-            }
-        }
-
-        int nitems() {
-            return 1;
+            if (_content.empty()) _content.push_back(std::vector<Item>());
+            if (_content[_rptr].empty()) _content[_rptr].push_back(Item());
         }
 
         void replace(int row, int col, std::string value) { _content[row][col].value(value); }
